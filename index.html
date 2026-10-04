@@ -277,7 +277,7 @@
             showlegend: false,
             name: 'Oberfläche O(r, h)',
             hoverlabel: lightHoverLabel,
-            hovertemplate: '<b>Oberfläche</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+            hovertemplate: '<b>Oberfläche</b><br>r = %{x:.1f} cm<br>h = %{y:.1f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
         };
 
         // Trace 1: Projektion auf die r-h-Ebene (z = 0)
@@ -300,7 +300,7 @@
                 ...lightHoverLabel,
                 bordercolor: '#f97316'
             },
-            hovertemplate: '<b>Nebenbedingung (Ebene z=0)</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+            hovertemplate: '<b>Nebenbedingung (Ebene z=0)</b><br>r = %{x:.1f} cm<br>h = %{y:.1f} cm<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
         };
 
         // Trace 2: Extrusions-Wand
@@ -337,7 +337,7 @@
                 ...lightHoverLabel,
                 bordercolor: '#ef4444'
             },
-            hovertemplate: '<b>Schnittkurve</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+            hovertemplate: '<b>Schnittkurve</b><br>r = %{x:.1f} cm<br>h = %{y:.1f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
         };
 
         // Trace 4: Optimum
@@ -355,7 +355,7 @@
                 size: 9,
                 symbol: 'circle'
             },
-            text: ['<b>Minimum</b><br>r ≈ 3.73 cm, h ≈ 7.46 cm'],
+            text: ['<b>Minimum</b><br>r ≈ 3.7 cm, h ≈ 7.5 cm'],
             textposition: 'top center',
             textfont: {
                 family: '-apple-system, BlinkMacSystemFont, sans-serif',
@@ -367,7 +367,7 @@
                 ...lightHoverLabel,
                 bordercolor: '#0f172a'
             },
-            hovertemplate: '<b>Optimum (Minimum)</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+            hovertemplate: '<b>Optimum (Minimum)</b><br>r = %{x:.1f} cm<br>h = %{y:.1f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
         };
 
         // Layout mit fixierten Achsenbereichen und deaktivierter Legende
