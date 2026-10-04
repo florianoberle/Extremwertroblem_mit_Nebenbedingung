@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D-Plot: Die optimale Limo-Dose</title>
+    <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- MathJax CDN für das Rendern von LaTeX-Formeln ($ ... $) -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #0f172a;
+            --text-muted: #94a3b8;
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 30px 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: #64748b;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .main-card {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #plot-container {
+            width: 100%;
+            height: 680px;
+        }
+
+        .controls-below {
+            background: #ffffff;
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 18px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* Verstecke die eigentliche HTML-Checkbox */
+        .control-item input[type="checkbox"] {
+            display: none;
+        }
+
+        /* Pillen-Button Styling */
+        .control-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 22px;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Inaktiver Zustand */
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            box-shadow: none;
+            opacity: 0.75;
+        }
+
+        .control-item:hover {
+            opacity: 1;
+            background-color: #e2e8f0;
+        }
+
+        /* Aktivierter Zustand mit modernem Schattenwurf */
+        .control-item:has(input[type="checkbox"]:checked) {
+            background-color: #ffffff;
+            color: var(--text-color);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        /* Farb-Punkte (Badges) */
+        .color-badge {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            transition: opacity 0.2s ease, filter 0.2s ease;
+        }
+
+        .badge-surface { background-color: #38bdf8; }
+        .badge-floor { background-color: #f97316; }
+        .badge-extrusion { background-color: #ef4444; }
+        .badge-min { background-color: #64748b; }
+
+        /* Farbpunkt im inaktiven Zustand leicht ausgrauen */
+        .control-item:not(:has(input[type="checkbox"]:checked)) .color-badge {
+            opacity: 0.5;
+            filter: grayscale(40%);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Extremwertproblem: Die optimale Limo-Dose</h1>
+        <p class="subtitle">Oberfläche $O(r, h) = 2\pi r^2 + 2\pi r h$ mit Nebenbedingung $V = 330 \text{ cm}^3$</p>
+    </div>
+
+    <div class="main-card">
+        <div id="plot-container"></div>
+        <div class="controls-below">
+            <label class="control-item">
+                <input type="checkbox" id="toggle-surface" checked>
+                <span class="color-badge badge-surface"></span>
+                Oberfläche
+            </label>
+            <label class="control-item">
+                <input type="checkbox" id="toggle-floor">
+                <span class="color-badge badge-floor"></span>
+                Nebenbedingung
+            </label>
+            <label class="control-item">
+                <input type="checkbox" id="toggle-extrusion-curve">
+                <span class="color-badge badge-extrusion"></span>
+                Schnittkurve
+            </label>
+            <label class="control-item">
+                <input type="checkbox" id="toggle-min">
+                <span class="color-badge badge-min"></span>
+                Minimum
+            </label>
+        </div>
+    </div>
+
+    <script>
+        // Wertebereiche: r von 0.1 bis 15 cm, h von 0.1 bis 50 cm
+        const rVals = [];
+        const hVals = [];
+        const nr = 120;
+        const nh = 120;
+
+        const rMinDomain = 0.1;
+        const rMaxDomain = 15.0;
+        const hMinDomain = 0.1;
+        const hMaxDomain = 50.0;
+
+        for (let i = 0; i < nr; i++) {
+            rVals.push(rMinDomain + (rMaxDomain - rMinDomain) * i / (nr - 1));
+        }
+        for (let j = 0; j < nh; j++) {
+            hVals.push(hMinDomain + (hMaxDomain - hMinDomain) * j / (nh - 1));
+        }
+
+        // 3D-Fläche O(r, h)
+        const zData = [];
+        const customDataSurface = [];
+        let zMaxVal = 0;
+
+        for (let j = 0; j < nh; j++) {
+            const rowZ = [];
+            const rowCustom = [];
+            for (let i = 0; i < nr; i++) {
+                const r = rVals[i];
+                const h = hVals[j];
+                const O = 2 * Math.PI * r * r + 2 * Math.PI * r * h;
+                const V = Math.PI * r * r * h;
+                rowZ.push(O);
+                rowCustom.push([V]);
+                if (O > zMaxVal) zMaxVal = O;
+            }
+            zData.push(rowZ);
+            customDataSurface.push(rowCustom);
+        }
+
+        // Nebenbedingungs-Kurve
+        const curveR = [];
+        const curveH = [];
+        const curveO = [];
+        const curveZero = [];
+        const curveV = [];
+        const nCurve = 250;
+
+        for (let i = 0; i < nCurve; i++) {
+            const r = 0.8 + (14.5 - 0.8) * i / (nCurve - 1);
+            const h = 330 / (Math.PI * r * r);
+            if (h >= hMinDomain && h <= hMaxDomain) {
+                const O = 2 * Math.PI * r * r + 2 * Math.PI * r * h;
+                const V = Math.PI * r * r * h;
+                curveR.push(r);
+                curveH.push(h);
+                curveO.push(O);
+                curveZero.push(0);
+                curveV.push([V]);
+            }
+        }
+
+        // Extrusions-Oberfläche (z = 0 bis z = O(r,h))
+        const extX = [curveR, curveR];
+        const extY = [curveH, curveH];
+        const extZ = [curveZero, curveO];
+
+        // Optimum berechnen
+        const rOpt = Math.cbrt(660 / (4 * Math.PI));
+        const hOpt = 330 / (Math.PI * rOpt * rOpt);
+        const oOpt = 2 * Math.PI * rOpt * rOpt + 2 * Math.PI * rOpt * hOpt;
+        const vOpt = Math.PI * rOpt * rOpt * hOpt;
+
+        // Tooltip-Style
+        const lightHoverLabel = {
+            bgcolor: '#ffffff',
+            bordercolor: '#cbd5e1',
+            font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                size: 13,
+                color: '#0f172a'
+            },
+            align: 'left',
+            namelength: -1
+        };
+
+        // Trace 0: Hauptoberfläche O(r, h)
+        const traceSurface = {
+            type: 'surface',
+            x: rVals,
+            y: hVals,
+            z: zData,
+            customdata: customDataSurface,
+            colorscale: 'CoolToSam',
+            opacity: 0.82,
+            showscale: false,
+            visible: true,
+            showlegend: false,
+            name: 'Oberfläche O(r, h)',
+            hoverlabel: lightHoverLabel,
+            hovertemplate: '<b>Oberfläche</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+        };
+
+        // Trace 1: Projektion auf die r-h-Ebene (z = 0)
+        const traceFloorCurve = {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: curveR,
+            y: curveH,
+            z: curveZero,
+            customdata: curveV,
+            visible: false,
+            showlegend: false,
+            line: {
+                color: '#f97316',
+                width: 6,
+                dash: 'dash'
+            },
+            name: 'Nebenbedingung (Ebene z = 0)',
+            hoverlabel: {
+                ...lightHoverLabel,
+                bordercolor: '#f97316'
+            },
+            hovertemplate: '<b>Nebenbedingung (Ebene z=0)</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+        };
+
+        // Trace 2: Extrusions-Wand
+        const traceExtrusion = {
+            type: 'surface',
+            x: extX,
+            y: extY,
+            z: extZ,
+            visible: false,
+            showscale: false,
+            showlegend: false,
+            colorscale: [[0, '#60a5fa'], [1, '#93c5fd']],
+            opacity: 0.45,
+            name: 'Extrusions-Fläche',
+            hoverinfo: 'skip'
+        };
+
+        // Trace 3: Schnittkurve
+        const traceCurve = {
+            type: 'scatter3d',
+            mode: 'lines',
+            x: curveR,
+            y: curveH,
+            z: curveO,
+            customdata: curveV,
+            visible: false,
+            showlegend: false,
+            line: {
+                color: '#ef4444',
+                width: 7
+            },
+            name: 'Schnittkurve',
+            hoverlabel: {
+                ...lightHoverLabel,
+                bordercolor: '#ef4444'
+            },
+            hovertemplate: '<b>Schnittkurve</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+        };
+
+        // Trace 4: Optimum
+        const traceMin = {
+            type: 'scatter3d',
+            mode: 'markers+text',
+            x: [rOpt],
+            y: [hOpt],
+            z: [oOpt],
+            customdata: [[vOpt]],
+            visible: false,
+            showlegend: false,
+            marker: {
+                color: '#0f172a',
+                size: 9,
+                symbol: 'circle'
+            },
+            text: ['<b>Minimum</b><br>r ≈ 3.73 cm, h ≈ 7.46 cm'],
+            textposition: 'top center',
+            textfont: {
+                family: '-apple-system, BlinkMacSystemFont, sans-serif',
+                size: 12,
+                color: '#0f172a'
+            },
+            name: 'Optimum (Minimum)',
+            hoverlabel: {
+                ...lightHoverLabel,
+                bordercolor: '#0f172a'
+            },
+            hovertemplate: '<b>Optimum (Minimum)</b><br>r = %{x:.2f} cm<br>h = %{y:.2f} cm<br>O = %{z:.1f} cm²<br>V = %{customdata[0]:.1f} cm³<extra></extra>'
+        };
+
+        // Layout mit fixierten Achsenbereichen und deaktivierter Legende
+        const layout = {
+            autosize: true,
+            showlegend: false,
+            hovermode: 'closest',
+            scene: {
+                xaxis: { 
+                    title: 'Radius r (cm)', 
+                    range: [0, 15],
+                    autorange: false,
+                    showspikes: false
+                },
+                yaxis: { 
+                    title: 'Höhe h (cm)', 
+                    range: [0, 50],
+                    autorange: false,
+                    showspikes: false
+                },
+                zaxis: { 
+                    title: 'Oberfläche O (cm²)',
+                    range: [0, zMaxVal],
+                    autorange: false,
+                    showspikes: false 
+                },
+                camera: {
+                    eye: { x: 1.5, y: -1.5, z: 1.1 }
+                }
+            },
+            margin: { l: 0, r: 0, b: 0, t: 10 }
+        };
+
+        const config = { 
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false
+        };
+
+        // Plot initialisieren
+        Plotly.newPlot('plot-container', [traceSurface, traceFloorCurve, traceExtrusion, traceCurve, traceMin], layout, config);
+
+        // Event-Listener für Checkboxen
+        document.getElementById('toggle-surface').addEventListener('change', function(e) {
+            Plotly.restyle('plot-container', { visible: e.target.checked }, [0]);
+        });
+
+        document.getElementById('toggle-floor').addEventListener('change', function(e) {
+            Plotly.restyle('plot-container', { visible: e.target.checked }, [1]);
+        });
+
+        document.getElementById('toggle-extrusion-curve').addEventListener('change', function(e) {
+            Plotly.restyle('plot-container', { visible: e.target.checked }, [2, 3]);
+        });
+
+        document.getElementById('toggle-min').addEventListener('change', function(e) {
+            Plotly.restyle('plot-container', { visible: e.target.checked }, [4]);
+        });
+    </script>
+</body>
+</html>
